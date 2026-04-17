@@ -4,7 +4,7 @@ import java.util.*;
 import javax.swing.*;
 public class BoardDelete extends JPanel{
 	JLabel titleLa,la;
-	JPasswordField pf;
+	JPasswordField pf; 
 	JButton b1,b2;
 	public BoardDelete()
 	{
