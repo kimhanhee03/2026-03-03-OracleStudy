@@ -1,0 +1,41 @@
+-- 237page 뷰 (View) 
+/*
+     1.  하나이상의 테이블을 연결해서 만든 가상테이블 
+         --------------------                        ------------- 데이터 저장이 안된다 (보안)
+     2. 장점 
+         = 편리성 : SQL문장을 간결하게 만들 수 있다 
+         = 재사용 
+         = 보안성 : 데이터가 저장이 안된 상태 
+                        => SQL문장 (SELECT 문장) 
+         = 응용프로그램 (웹,애플리케이션) = 사용하기 편리하다 , SQL문장 간결하기 때문에 
+                                                           -------------------------------------
+            오류가 거의 없다 
+         = 조인이 많거나 서브쿼리 => SQL문장이 복잡해지는 경우 => VIEW
+     3. VIEW 생성 
+         = 단순뷰 : 한개의 테이블 참조 (거의 빈도가 없다)
+         = 복합뷰 : 두개이상의 테이블 연결 (조인 , 서브쿼리)
+         = 인라인뷰 : 임시 테이블을 만들어서 처리 (한번만 사용 가능=재사용(X))
+     4. View => 보여만 주는 역할 (SELECT) 
+                     DML사용도 가능 (INSERT , UPDATE , DELETE) 
+                     => 단순뷰에서만 가능 
+                     => 단점) view에서 DML이 되는 것이 아니고 실제 참조하는 테이블이 변경
+                     => 옵션 
+                           WITH CHECK OPTION => DML이 가능 
+                           WITH READ ONLY => 읽기 전용 (DML이 불가능) 
+         저장된 내용 확인 
+         ** SELECT text FROM user_views 
+            WHERE view_name='대문자';
+     5. 생성  => 237page
+         CREATE VIEW view_name   => View는 SELECT~문장을 저장한다 
+         AS
+            SELECT ~ 
+         => 수정 => DROP => 다시 생성 
+     6. 수정 ==> 239page
+         CREATE OR REPLACE VIEW view_name
+                    --------------
+         AS
+            SELECT~
+         => 수정 => DROP없이 수정이 가능 
+     7. 삭제 ==> 240page 
+        DROP VIEW view_name 
+*/
