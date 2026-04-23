@@ -1,0 +1,521 @@
+-- PL/SQL => FUNCTION / PROCEDURE / TRIGGER => 웹 개발자 만들어진 내용을 사용 
+/*
+    1. FUNCTION : 리턴값 존재 => SELECT 안에서 주로 사용 
+                         => 내장함수 : SUBSTR , TRIM , RPAD ... 
+                         => 사용자 정의 함수 (지원하지 않는 함수)
+                         => INSERT / UPDATE / DELETE를 사용하지 않는다 
+                         => SELECT를 이용한다 
+                         => 계산 , 변환 , 조회 
+                                               ------
+                                                JOIN 데이터 
+                                       ----- 날짜 , 숫자 변환 
+                              ------ ROW단위 계산  
+    2. PROCEDURE : 작업 수행용 (리턴형이 없다)
+                           => 데이터변경 / 트랜잭션 처리 
+                           => 공통으로 적용되는 기능 (댓글 , 좋아요 , 찜하기) 
+                                                                 ------- 웹에서 적용 
+    3. TRIGGER : 테이블에서 이벤트(사건)가 발생 => 다른 테이블의 데이터 변경 
+                      => INSERT , UPDATE , DELETE  
+                      => 반드시 테이블이 다른 경우에만 적용 
+                      => 입고 = 재고 , 출고 = 재고 
+                      => 맛집 = 좋아요
+                      => 자동화 
+    
+
+*/
+-- PROCEDURE : 리턴형이 없는 함수 => 기능중심 
+/*
+   CREATE OR REPLACE PROCEDURE pro_name(매개변수)
+   IS
+    필요 변수 설정 
+   BEGIN
+    기능 처리 
+   END;
+    /
+
+   CALL pro_name(값...)  => CallableStatement
+*/
+-- student 
+-- insert 
+CREATE OR REPLACE PROCEDURE studentInsert(
+  pName student.name%TYPE,
+  pKor student.kor%TYPE,
+  pEng student.eng%TYPE,
+  pMath student.math%TYPE
+)
+IS
+BEGIN 
+  INSERT INTO student 
+   VALUES(std_seq.nextval,pName,pKor,pEng,pMath);
+  COMMIT;
+END;
+/
+-- update 
+
+-- delete 
+-- select : OUT포함  
+/*
+    매개변수 => IN / OUT / INOUT
+                          ------
+                          값대입 , 값받기
+                   -----
+                    값을 받는 변수 : Call By Reference 
+                    -- C언어 => 모든 변수에 주소
+                    aaa(int* p) ==> aaa(&a)
+              --- 값을 대입 (INSERT , UPDATE , DELETE)
+              --- DEFAULT => 생략이 된 경우 
+              --- SELECT일 경우
+              
+*/
+CALL studentInsert('김두한',90,87,67);
+SELECT * FROM student;
+
+-- update 
+CREATE OR REPLACE PROCEDURE studentUpdate(
+  pHakbun student.hakbun%TYPE,
+  pName student.name%TYPE,
+  pKor student.kor%TYPE,
+  pEng student.eng%TYPE,
+  pMath student.math%TYPE
+)
+IS
+ -- 필요한 변수 선언 위치 
+BEGIN
+ UPDATE student SET 
+ name=pName,kor=pKor,eng=pEng,math=pMath
+ WHERE hakbun=pHakbun;
+ COMMIT;
+END;
+/
+
+CALL studentupdate(2,'춘향이',80,80,70);
+select * from student;
+
+-- 가독성 
+
+-- DELETE
+CREATE OR REPLACE PROCEDURE studentDelete(
+  pHakbun student.hakbun%TYPE
+)
+IS 
+BEGIN
+  -- SQL문장 
+  DELETE FROM student
+  WHERE hakbun=phakbun;
+  COMMIT;
+END;
+/
+
+CALL studentDelete(2);
+SELECT * FROM student;
+-- 여러개의 SQL문장 제어 / 일괄 처리 / 보안 ...
+
+-- SELECT 
+CREATE OR REPLACE PROCEDURE studentSelect(
+  pHakbun student.hakbun%TYPE,
+  pName OUT student.name%TYPE,
+  pKor OUT student.kor%TYPE,
+  pEng OUT student.eng%TYPE,
+  pMath OUT student.math%TYPE
+)
+IS
+BEGIN
+  SELECT name,kor,eng,math INTO pName,pKor,pEng,pMath
+  FROM student 
+  WHERE hakbun=pHakbun;
+END;
+/
+
+VARIABLE pName VARCHAR2;
+VARIABLE pKor NUMBER;
+VARIABLE pEng NUMBER;
+VARIABLE pMath NUMBER;
+
+EXECUTE studentSelect(3,:pName,:pKor,:pEng,:pMath);
+PRINT pName;
+PRINT pKor;
+PRINT pEng;
+PRINT pMath;
+/*
+   FUNCTION VS PROCEDURE => 리턴형
+   장점 
+     SQL문장을 볼 수 없다 (보안) 
+     재사용이 가능 => 제작 (DROP시까지 유지)
+     SQL문장을 ㅈ줄여서 사용이 가능 
+   단점
+     분석이 어렵다 
+     
+     형식 / 호출 방식 
+     CREATE [OR REPLACE] FUNCTION func_name(매개변수)
+     RETURN 데이터형 
+     IS
+      필요한 변수 설정 (지역변수)
+     BEGIN
+      SQL문장으로 제어 
+      RETURN 값;
+     END;
+      /
+      
+     CREATE [OR REPLACE] PROCEDURE pro_name(매개변수)
+     IS 
+     BEGIN 
+         DML 관련 => INSERT / UPDATE / DELETE / SELECT
+     END;
+      /
+      
+     매개변수 => 값 채우기 : OUT
+                -------- SELECT
+                값 주입 : IN (생략이 가능)
+                ------ WHERE , INSERT , UPDATE , DELETE
+     호출 : CALL 프로시저명(매개변수...)
+           CallableStatement
+     int[] arr=new int[5]  => :pName
+     
+     public void display(int[] arr)
+     {
+     }
+     
+     display(arr)
+*/
+
+-- Function 연습 
+CREATE TABLE student(
+   hakbun NUMBER PRIMARY KEY,
+   name VARCHAR2(51) NOT NULL,
+   kor NUMBER(3),
+   eng NUMBER(3),
+   math NUMBER(3)
+);
+CREATE SEQUENCE std_seq
+    START WITH 1
+    INCREMENT BY 1
+    NOCACHE
+    NOCYCLE;
+INSERT INTO student VALUES(std_seq.nextval,'홍길동',90,87,78);
+INSERT INTO student VALUES(std_seq.nextval,'심청이',75,89,67);
+INSERT INTO student VALUES(std_seq.nextval,'박문수',78,89,56);
+INSERT INTO student VALUES(std_seq.nextval,'이순신',73,82,80);
+INSERT INTO student VALUES(std_seq.nextval,'강감찬',67,89,90);
+COMMIT;
+/*
+     Function 형식 
+     CREATE [OR REPLACE] FUNCTION func_name(매개변수)
+     RETURN 데이터형(NUMBER , VARCHAR2 , CLOB , DATE)
+            ------- 
+     IS 
+       지역변수 
+     BEGIN
+       기능 처리 
+       RETURN 값
+              --   return 지정된 데이터형과 일치 
+     END;
+      /
+*/
+SELECT hakbun,name,kor,eng,math,(kor+eng+math) "total",
+       ROUND((kor+eng+math)/3.0,2) "avg"
+FROM student;
+-- Column단위는 통계 / ROW단위 통계는 없다 => 사용자 정의 함수로 제작
+CREATE OR REPLACE FUNCTION studentTotal(
+   pHakbun student.hakbun%TYPE
+)RETURN NUMBER
+IS
+  pSum NUMBER;
+BEGIN 
+  SELECT kor+eng+math INTO pSum
+  FROM student
+  WHERE hakbun=phakbun;
+  RETURN pSum;
+END;
+/
+-- 회사 실적 => 분기별 / 부서별 => ERP 
+CREATE OR REPLACE FUNCTION studentAvg(
+   pHakbun student.hakbun%TYPE
+) RETURN NUMBER
+IS
+  pAvg NUMBER;
+BEGIN
+  SELECT ROUND((kor+eng+math)/3.0,2) INTO pAvg
+  FROM student
+  WHERE hakbun=phakbun;
+  RETURN pAvg;
+END;
+/
+SELECT hakbun,name,kor,eng,math,studentTotal(hakbun),
+       studentAvg(hakbun)
+FROM student;
+-- 계산식에서 주로 사용 
+-- JOIN에서 
+/*
+    INNER JOIN (=) / OUTER JOIN (LEFT,RIGHT)
+    오라클 조인보다는 ANSI조인 사용 => SQL 튜닝 
+*/
+SELECT empno,ename,hiredate,job,sal,dname,loc
+FROM emp JOIN dept 
+ON emp.deptno=dept.deptno
+ORDER BY sal DESC;
+
+CREATE OR REPLACE FUNCTION deptGetDname(
+   pDeptno dept.deptno%TYPE
+) RETURN VARCHAR2
+IS
+ pDname dept.dname%TYPE;
+BEGIN 
+ -- dname을 가지고 온다 => JOIN없이 사용이 가능
+ SELECT dname INTO pDname
+ FROM dept
+ WHERE deptno=pDeptno;
+ RETURN pDname;
+END;
+/
+-- 변환 
+/*
+   JSP / Spring-Boot : JDBC => MyBatis selectList(sql)
+   JPA : findByName(aaa)  WHERE name='aaa'
+   => Front-End 
+*/
+-- 스칼라 서브쿼리 
+SELECT empno,ename,job,hiredate,sal,deptGetDname(deptno)
+FROM emp;
+-- 예약  / 결제 
+SELECT * FROM orders;
+-- INSERT INTO table VALUES(?,?....)
+CREATE OR REPLACE FUNCTION ordersGetData(
+   pCustId orders.custid%TYPE
+) RETURN VARCHAR2
+IS 
+ pName customer.name%TYPE;
+BEGIN
+ SELECT name INTO pName
+ FROM customer
+ WHERE custid=pcustid;
+ RETURN pName;
+END;
+/
+
+CREATE OR REPLACE FUNCTION ordersGetBook(
+   pBookId orders.bookid%TYPE
+) RETURN VARCHAR2
+IS 
+ pName book.bookname%TYPE;
+BEGIN
+ SELECT bookname INTO pName
+ FROM book
+ WHERE bookid=pbookid;
+ RETURN pName;
+END;
+/
+SELECT orderid,ordersGetData(custid),
+       ordersGetBook(bookid),bookid,orderdate
+FROM orders;
+
+SELECT orderid,name,bookname,orderdate
+FROM orders JOIN customer 
+ON orders.custid=customer.custid
+JOIN book
+ON orders.bookid=book.bookid;
+
+SELECT orderid,
+       (SELECT name FROM customer WHERE custid=orders.custid),
+       (SELECT bookname FROM book WHERE bookid=orders.bookid),
+       orderdate
+FROM orders;
+
+-- JOIN , 스칼라 서브 쿼리 대신 => 함수화 
+-- 변환 
+CREATE OR REPLACE FUNCTION dateChange(
+  pEmpno emp.empno%TYPE
+) RETURN VARCHAR2
+IS 
+  pDate VARCHAR2(30);
+BEGIN
+  SELECT TO_CHAR(hiredate,'YYYY-MM-DD HH24:MI:SS') INTO pDate
+  FROM emp
+  WHERE empno=pEmpno;
+  RETURN pDate;
+END;
+/
+--급여 인상 / 연봉 ...
+SELECT empno,ename,dateChange(empno)
+FROM emp;
+
+-- 삭제 
+DROP FUNCTION studentTotal;
+DROP FUNCTION studentAvg;
+DROP FUNCTION deptGetDname;
+DROP FUNCTION ordersGetBook;
+DROP FUNCTION dateChange;
+DROP FUNCTION ordersGetData;
+
+/*
+   생성 : CREATE FUNCTION 
+   삭제 : DROP FUMCTION func_name
+   수정 : CREATE OR REPLACE FUNCTION
+   
+   ROW 단위 계산 
+   JOIN / 스칼라 서브쿼리 
+   데이터 변환 
+   => SELECT뒤에서 호출 / RETURN 값을 가지고 있어야 한다 
+   => INSERT / UPDATE / DELETE 
+    ----------------------------- PROCEDURE : 웹에 적용 
+    
+   함수 : 재사용 => 반복적인 SQL문장이 있는 경우 
+                        ---------
+                        | 감추는 경우 (보안)
+   => 오라클 : 보안 (인라인뷰 , 프로시저...,VIEW)
+   => 최적화 : INDEX 
+   => CI/CD => war/jar 
+*/
+
+-- 트리거 (자동 이벤트 처리 = 미리 설정된 조건이 맞는 경우에 자동 실행)
+/*
+    트리거는 INSERT|UPDATE|DELETE
+    입고 => INSERT => 재고
+        새로운 상품 
+    입고 => UPDATE => 재고
+        수량, 금액
+    입고 => DELETE => 재고
+        취소 
+        
+    출고 => INSERT,UPDATE,DELETE => 재고
+    
+    형식)
+       = 생성
+         CREATE [OR REPLACE] TRIGGER trigger_name
+         BEFORE|AFTER [INSERT|UPDATE|DELETE] ON table_name
+         DECLARE
+            변수 선언 => 변수가 없으면 생략
+         BEGIN
+            트리거 구현 
+         END;
+         /
+       = 삭제
+         DROP TRIGGER tri_name
+       = 수정 
+         ALTER TRIGGER tri_name => 수정
+*/
+DROP TABLE 상품;
+DROP TABLE 입고;
+DROP TABLE 출고;
+DROP TABLE 재고;
+CREATE TABLE 상품(
+   품번 NUMBER,
+   상품명 VARCHAR2(100),
+   단가 NUMBER
+);
+CREATE TABLE 입고(
+   품번 NUMBER,
+   수량 NUMBER,
+   금액 NUMBER
+);
+CREATE TABLE 출고(
+   품번 NUMBER,
+   수량 NUMBER,
+   금액 NUMBER
+);
+CREATE TABLE 재고(
+   품번 NUMBER,
+   수량 NUMBER,
+   금액 NUMBER,
+   누적금액 NUMBER
+);
+DELETE FROM 상품;
+INSERT INTO 상품 VALUES(100,'새우깡',1500);
+INSERT INTO 상품 VALUES(200,'감자깡',1200);
+INSERT INTO 상품 VALUES(300,'고구마깡',1000);
+INSERT INTO 상품 VALUES(400,'치토스',2000);
+INSERT INTO 상품 VALUES(500,'맛동산',2500);
+COMMIT;
+SELECT * FROM 상품;
+SELECT * FROM daum_movie order by mno asc;
+-- 입고 = 재고
+/*
+      품번 NUMBER,
+      수량 NUMBER,
+      금액 NUMBER
+      INSERT INTO 입고 VALUES(100,5,1500)
+         :NEW.품번 = 100
+         :NEW.수량 = 5
+         :NEW.금액 = 1500
+*/
+CREATE OR REPLACE TRIGGER 입고_Trigger
+AFTER INSERT ON 입고
+FOR EACH ROW
+DECLARE
+  v_cnt NUMBER;
+BEGIN 
+  SELECT COUNT(*) INTO v_cnt
+  FROM 재고 
+  WHERE 품번=:NEW.품번;
+  
+  IF (v_cnt=0) THEN -- 새로운 상품이 입고 
+    INSERT INTO 재고 VALUES(:NEW.품번,:NEW.수량,:NEW.금액,:NEW.수량*:NEW.금액);
+  ELSE  -- 기존에 있는 상품이 입고 
+    UPDATE 재고 SET
+    수량=수량+:NEW.수량,
+    누적금액=누적금액+(:NEW.수량*:NEW.금액)
+    WHERE 품번=:NEW.품번;
+  END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER 출고_Trigger
+AFTER INSERT ON 출고
+FOR EACH ROW
+DECLARE
+  v_cnt NUMBER;
+BEGIN
+  SELECT 수량 INTO v_cnt
+  FROM 재고
+  WHERE 품번=:NEW.품번;
+  
+  IF (:NEW.수량=v_cnt) THEN
+    DELETE FROM 재고
+    WHERE 품번=:NEW.품번;
+  ELSE
+    UPDATE 재고 SET
+    수량=수량-:NEW.수량,
+    누적금액=누적금액-(:NEW.수량*:NEW.금액)
+    WHERE 품번=:NEW.품번;
+  END IF;
+END;
+/
+-- 재고에 있는 상품 ==> 재고 (UPDATE)
+-- 재고에 없는 상품 ==> 재고 (INSERT)
+-- 출고 = 재고
+-- 출고량 = 제고량  ==> 재고 (DELETE)
+-- 출고량 != 재고량 ==> 재고 (UPDATE)
+SELECT * FROM 재고;
+INSERT INTO 입고 VALUES(200,3,1200);
+COMMIT;
+INSERT INTO 출고 VALUES(100,7,1500);
+COMMIT;
+INSERT INTO 출고 VALUES(200,3,1200);
+COMMIT;
+DELETE FROM 재고;
+COMMIT;
+
+-- 입고
+INSERT INTO 입고 VALUES(100,5,1500);
+INSERT INTO 입고 VALUES(100,2,1500);
+INSERT INTO 입고 VALUES(200,10,1200);
+COMMIT;
+/*
+     100 7 1500 1500*7
+     200 10 1200 1200*10
+*/
+-- 재고
+SELECT * FROM 재고;
+-- 출고 
+INSERT INTO 출고 VALUES(100,5,1500);
+/*
+     100 2 1500 3000
+     
+     => 영화 => 검색어 , 댓글 , 평점/평균  => TRIGGER
+*/
+INSERT INTO 출고 VALUES(200,10,1200);
+COMMIT;
+-- 재고 
+INSERT INTO 입고 VALUES(300,10,1000);
+COMMIT;
+INSERT INTO 출고 VALUES(300,10,1000);
+COMMIT;
