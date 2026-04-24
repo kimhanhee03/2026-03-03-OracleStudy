@@ -1,0 +1,16 @@
+이정도는 공부해두면 좋음
+    
+    DML / DQL > 구현(JDBC와 연결)
+    insert / update / delete / select
+    ------------------------
+    =연산자
+    =내장함수
+    DDL / TCL > 간단한 테이블 제작
+    =sequenc / view / index
+    =join / subquery
+    =DDL
+        create / alter /drop
+        > 제약조건
+            primary key / forigen key / unique
+            check / not null
+            default
