@@ -14,3 +14,27 @@
             primary key / forigen key / unique
             check / not null
             default
+
+
+
+
+package com.sist.vo;
+import java.time.LocalTime;
+/*
+SNO            NOT NULL NUMBER       
+SABUN          NOT NULL NUMBER       
+STATUS                  VARCHAR2(10) 
+CHECK_IN_TIME           DATE         
+CHECK_OUT_TIME          DATE 
+ */
+import java.util.*;
+
+import lombok.Data;
+
+@Data
+public class AttendVO {
+private int sno,sabun;
+private String status;
+private LocalTime inTime,outTime;
+
+}
